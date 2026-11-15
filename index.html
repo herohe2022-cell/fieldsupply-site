@@ -1,0 +1,761 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FieldSupply</title>
+<meta name="description" content="FieldSupply is bot to bot commerce for hardware. Your agent talks to suppliers' agents to find, check and buy tested parts for robotics and drone teams.">
+<meta name="theme-color" content="#FFFFFF">
+<meta property="og:title" content="FieldSupply: Bot to Bot Commerce">
+<meta property="og:description" content="Your agent talks to suppliers' agents. You approve a tested part.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='214 199 472 508'%3E%3Cg fill='none' stroke='%23D3B468' stroke-width='45'%3E%3Ccircle cx='448' cy='305' r='78'/%3E%3Ccircle cx='320' cy='601' r='78'/%3E%3Ccircle cx='578' cy='601' r='78'/%3E%3C/g%3E%3Cg fill='%23D3B468'%3E%3Crect x='419' y='378' width='58' height='60'/%3E%3Crect x='291' y='425' width='316' height='58' rx='26'/%3E%3Crect x='291' y='445' width='58' height='80'/%3E%3Crect x='549' y='445' width='58' height='80'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400&display=swap">
+<style>
+/* FieldSupply design system
+   Page colour shifts by section as you scroll: white, cool grey, pale blue, white, grey, white, then deep navy for the close.
+   Ink #111111 / #6B7280, rules #E5E7EB, accent deep industrial blue. Gold lives only in the logo. Radius 8px.
+   Background art: an ASCII joint actuator fixed behind the page, turning with scroll and re-tinting with each section. */
+:root {
+  color-scheme: light;
+  --accent: #1E3A6E;
+  --accent-wash: #EEF2F8;
+  --good: #166534;
+  --bad: #B4472F;
+  --fill: #F3F4F6;
+  --wechat: #07C160;
+  --r: 8px;
+  --sans: 'Geist', 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  --mono: 'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --max: 1200px;
+  --ease: cubic-bezier(.2, .7, .2, 1);
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; background: #FFFFFF; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  --page-bg: #FFFFFF; --ink: #111111; --ink-2: #374151; --muted: #6B7280; --line: #E5E7EB;
+  --art-body: #BFC5CE; --art-out: #93A8CE; --meter-off: #E5E7EB; --meter-on: var(--accent); --label: var(--accent); --card: #FFFFFF;
+  margin: 0; background: var(--page-bg); color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.6;
+  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; overflow-x: hidden;
+  transition: background-color 700ms ease, color 700ms ease;
+}
+body.is-dark { --ink: #F3F5F8; --ink-2: #D5DBE5; --muted: #9AA6BA; --line: rgba(255,255,255,0.12); --art-body: #2A3958; --art-out: #5679BD; --meter-off: rgba(255,255,255,0.14); --meter-on: #8FB0EA; --label: #8FB0EA; --card: rgba(255,255,255,0.05); }
+h1, h2, h3, p, td, th, .links a, .brand, .steps li, .rung { transition: color 700ms ease, background-color 700ms ease, border-color 700ms ease; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+body.is-dark :focus-visible { outline-color: #8FB0EA; }
+.wrap { max-width: var(--max); margin: 0 auto; padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); }
+
+/* Background art */
+.art { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.ascii { position: absolute; right: -9vw; top: 50%; transform: translateY(-46%); margin: 0; font-family: var(--mono); font-size: clamp(9px, 1.34vw, 20px); line-height: 1; letter-spacing: 0; user-select: none; }
+.ascii pre { margin: 0; font: inherit; line-height: inherit; white-space: pre; transition: color 700ms ease; }
+.ascii .body { color: var(--art-body); }
+.ascii .out { position: absolute; inset: 0; color: var(--art-out); }
+.ascii { transition: transform 900ms var(--ease), opacity 900ms ease; }
+body.past-hero .ascii { transform: translate(16vw, -46%); opacity: 0.6; }
+@media (max-width: 1000px) {
+  .ascii { right: 50%; transform: translate(50%, -42%); opacity: 0.5; font-size: clamp(8px, 2.3vw, 14px); }
+  body.past-hero .ascii { transform: translate(50%, -42%); opacity: 0.22; }
+}
+header, main, footer { position: relative; z-index: 1; }
+
+/* Navigation */
+header.top { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--page-bg) 84%, transparent); backdrop-filter: saturate(1.6) blur(12px); -webkit-backdrop-filter: saturate(1.6) blur(12px); transition: background-color 700ms ease; }
+header.top .wrap { display: flex; align-items: center; justify-content: space-between; height: 68px; gap: 24px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 600; font-size: 16.5px; letter-spacing: -0.02em; color: var(--ink); }
+.brand svg { width: 24px; height: 26px; display: block; }
+.links { display: flex; align-items: center; gap: 4px; font-size: 14.5px; }
+.links a { text-decoration: none; color: var(--muted); padding: 6px 10px; border-radius: 6px; }
+.links a:hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 6%, transparent); }
+.btn { display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0 16px; border-radius: var(--r); border: 0; background: #111111; color: #fff; font: inherit; font-size: 14.5px; font-weight: 500; text-decoration: none; cursor: pointer; white-space: nowrap; transition: background-color 300ms ease, color 300ms ease, transform 120ms ease; }
+.btn:hover { background: #2A2A2A; }
+.btn:active { transform: translateY(1px); }
+.btn[disabled] { opacity: .6; cursor: default; }
+body.is-dark .btn { background: #FFFFFF; color: #0E1A30; }
+body.is-dark .btn:hover { background: #E6EBF3; }
+.btn.lg { height: 46px; padding: 0 20px; font-size: 15.5px; }
+.links .btn { margin-left: 12px; height: 36px; padding: 0 14px; color: #fff; }
+.links .btn:hover { color: #fff; background: #2A2A2A; }
+body.is-dark .links .btn { color: #0E1A30; background: #fff; }
+@media (max-width: 760px) { .links a:not(.btn) { display: none; } .links .btn { margin-left: 0; } }
+
+/* Hero */
+.hero { min-height: calc(100vh - 68px); display: flex; align-items: center; padding-block: 56px 96px; }
+.hero-copy { max-width: 620px; }
+.kicker { display: inline-flex; align-items: baseline; gap: 8px; font-size: 14px; color: var(--muted); margin: 0 0 20px; }
+.kicker i { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex: none; transform: translateY(-2px); }
+h1 { font-size: clamp(44px, 6vw, 78px); line-height: 1; letter-spacing: -0.045em; font-weight: 600; margin: 0 0 22px; text-wrap: balance; }
+h1 .soft { color: var(--muted); }
+.lede { font-size: 18px; line-height: 1.6; color: var(--ink-2); max-width: 32em; margin: 0 0 34px; }
+@media (prefers-reduced-motion: no-preference) {
+  .hero .kicker, .hero h1, .hero .lede, .hero .join { animation: rise 700ms var(--ease) both; }
+  .hero h1 { animation-delay: 80ms; } .hero .lede { animation-delay: 160ms; } .hero .join { animation-delay: 240ms; }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+}
+
+/* Waitlist form */
+.join { display: flex; flex-direction: column; gap: 8px; max-width: 520px; }
+.join .row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.join .row2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+@media (max-width: 520px) { .join .row, .join .row2 { grid-template-columns: minmax(0, 1fr); } }
+.field { font: inherit; font-size: 15px; color: #111; background: var(--fill); border: 1px solid transparent; border-radius: var(--r); padding: 0 14px; height: 46px; width: 100%; min-width: 0; transition: background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease; }
+select.field { color: #374151; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5l3 3 3-3' fill='none' stroke='%236B7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 13px center; padding-right: 34px; }
+.field::placeholder { color: #8B929C; }
+.field:hover { background-color: #ECEEF1; }
+.field:focus { outline: none; background-color: #fff; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-wash); }
+.field[aria-invalid="true"] { background-color: #FEF2F2; border-color: #B91C1C; }
+.fine { font-size: 13.5px; color: var(--muted); margin: 6px 0 0; }
+.sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.result { font-size: 15px; padding: 12px 14px; border-radius: var(--r); max-width: 520px; }
+.result.ok { background: #F0FDF4; color: #14532D; }
+.result.err { background: #FEF2F2; color: #7F1D1D; }
+
+/* Sections */
+section.band { padding-block: 128px; }
+@media (max-width: 760px) { section.band { padding-block: 80px; } }
+.head { max-width: 680px; margin-bottom: 44px; display: flex; flex-direction: column; gap: 12px; }
+.eyebrow { font-size: 14px; color: var(--label); font-weight: 500; margin: 0; }
+h2 { font-size: clamp(28px, 3.4vw, 44px); line-height: 1.08; letter-spacing: -0.035em; font-weight: 600; margin: 0; text-wrap: balance; }
+h2 .soft { color: var(--muted); }
+.head p { margin: 0; color: var(--muted); font-size: 17px; }
+
+/* Problem: the tab pile and the thread */
+.problem-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 56px; align-items: center; }
+@media (max-width: 900px) { .problem-grid { grid-template-columns: minmax(0, 1fr); } }
+.pile-box { position: relative; width: 100%; }
+.pile { position: absolute; left: 0; top: 0; width: 640px; height: 500px; transform-origin: 0 0; }
+.win { position: absolute; background: #FFFFFF; color: #1B2440; border-radius: 12px; overflow: hidden; box-shadow: 0 22px 50px rgba(17,24,39,.14), 0 0 0 1px rgba(17,24,39,.06); line-height: 1.3; opacity: 0; transform: translate3d(0, 34px, 0); transition: opacity .5s ease, transform .7s var(--ease); }
+.in .win { opacity: 1; transform: rotate(var(--rz, 0deg)); }
+.wbar { display: flex; align-items: center; gap: 12px; padding: 9px 14px; background: #EEF0F3; font-size: 14px; font-weight: 600; color: #374151; }
+.dots { display: flex; gap: 6px; } .dots i { width: 10px; height: 10px; border-radius: 50%; background: #C9CDD4; }
+.wx { left: 0; top: 0; width: 360px; --rz: -4deg; transition-delay: .1s; }
+.wx .wbar { background: var(--wechat); color: #fff; } .wx .wbar .dots i { background: rgba(255,255,255,.55); }
+.chat { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-top: 1px solid #EEF0F3; }
+.av { flex: none; width: 34px; height: 34px; border-radius: 8px; background: #D9DEE7; color: #1E3A6E; display: grid; place-items: center; font-size: 16px; font-weight: 600; }
+.cn { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.cn b { font-size: 14px; font-weight: 600; } .cn small { font-size: 13px; color: #6B7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ub { flex: none; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px; background: #EF4444; color: #fff; font-size: 12px; font-weight: 600; display: grid; place-items: center; }
+.wt2 { right: 0; top: 18px; width: 300px; --rz: 3deg; transition-delay: .25s; }
+.tr { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; font-size: 16px; }
+.tr .arrow { color: #9CA3AF; } .tr em { font-style: normal; color: var(--bad); font-weight: 600; }
+.wb { left: 50px; right: 0; bottom: 20px; --rz: -1deg; transition-delay: .4s; }
+.tabstrip { display: flex; gap: 2px; padding: 8px 8px 0; background: #EEF0F3; overflow: hidden; }
+.tb { flex: 1 1 0; min-width: 12px; max-width: 150px; display: flex; align-items: center; gap: 5px; padding: 6px 7px; border-radius: 7px 7px 0 0; background: #DDE1E7; font-size: 11px; color: #374151; white-space: nowrap; overflow: hidden; }
+.tb i { flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--fc, #9CA3AF); }
+.tb span { overflow: hidden; text-overflow: ellipsis; }
+.tb.cur { background: #FFFFFF; }
+.tb.new { animation: tabin .25s ease; }
+@keyframes tabin { from { max-width: 0; opacity: 0; } }
+.url { margin: 8px 12px; padding: 6px 12px; border-radius: 999px; background: #F3F4F6; font-size: 12px; color: #6B7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.results { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; padding: 4px 12px 14px; }
+.res { display: flex; flex-direction: column; gap: 3px; font-size: 13px; }
+.res .ph { height: 54px; border-radius: 6px; background: repeating-linear-gradient(135deg, #F3F4F6 0 8px, #E9EBEF 8px 16px); }
+.res b { font-size: 14px; font-weight: 600; } .res small { color: var(--bad); font-size: 12px; }
+.tabcount { position: absolute; right: 4px; bottom: -40px; font-size: 15px; color: var(--muted); }
+.tabcount b { color: var(--ink); font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.thread { display: flex; flex-direction: column; gap: 12px; }
+.msg { padding: 14px 18px; border-radius: 14px; font-size: 17px; line-height: 1.4; display: flex; flex-direction: column; gap: 3px; max-width: 440px; opacity: 0; transform: translateY(12px); transition: opacity .5s ease, transform .6s var(--ease); }
+.in .msg { opacity: 1; transform: none; }
+.msg:nth-child(2) { transition-delay: .5s; } .msg:nth-child(3) { transition-delay: 1s; }
+.msg .wk { font-size: 12.5px; color: var(--muted); font-weight: 500; }
+.msg em { font-style: normal; color: var(--muted); font-size: 14.5px; }
+.msg.me { background: #FFFFFF; align-self: flex-start; box-shadow: 0 0 0 1px var(--line); }
+.msg.them { background: var(--accent-wash); align-self: flex-end; }
+.msg.bad { background: #FEF2F2; color: #991B1B; font-weight: 500; align-self: flex-start; }
+.caption { font-size: 13.5px; color: var(--muted); margin: 14px 0 0; }
+
+/* Idea: two agents */
+.duo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(80px, 200px) minmax(0, 1fr); align-items: center; max-width: 900px; margin-bottom: 72px; }
+.node { background: var(--card); border-radius: 12px; padding: 28px 22px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; box-shadow: 0 0 0 1px var(--line), 0 12px 30px rgba(30,58,110,.08); }
+.node svg { width: 36px; height: 36px; color: var(--accent); }
+.node b { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
+.node p { margin: 0; color: var(--muted); font-size: 14.5px; }
+.wire { position: relative; height: 2px; background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--accent) 45%, transparent) 0 6px, transparent 6px 12px); }
+.wire i { position: absolute; top: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); animation: flow 2.4s linear infinite; }
+.wire i:nth-child(2) { animation-delay: .8s; } .wire i:nth-child(3) { animation-delay: 1.6s; animation-direction: reverse; }
+@keyframes flow { from { left: 0; opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } to { left: calc(100% - 10px); opacity: 0; } }
+@media (max-width: 640px) { .duo { grid-template-columns: minmax(0, 1fr); } .wire { width: 2px; height: 56px; margin: 0 auto; background: repeating-linear-gradient(180deg, color-mix(in srgb, var(--accent) 45%, transparent) 0 6px, transparent 6px 12px); } .wire i { display: none; } }
+
+/* Steps with a process line */
+.steps-wrap { position: relative; max-width: 1000px; }
+.track { position: absolute; left: 5px; right: 0; top: 5px; height: 2px; background: color-mix(in srgb, var(--ink) 10%, transparent); border-radius: 1px; overflow: hidden; }
+.track i { display: block; height: 100%; width: 100%; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform 1500ms var(--ease); }
+.in .track i { transform: scaleX(1); }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 48px; }
+@media (max-width: 900px) { .steps { grid-template-columns: minmax(0, 1fr); gap: 32px; } .track { display: none; } }
+.steps li { display: flex; flex-direction: column; gap: 8px; }
+.marker { display: flex; flex-direction: column; gap: 14px; font-size: 13.5px; color: var(--muted); font-weight: 500; transition: color 400ms ease; }
+.marker b { width: 12px; height: 12px; border-radius: 50%; background: var(--page-bg); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--ink) 18%, transparent); transition: background-color 400ms ease, box-shadow 400ms ease; position: relative; }
+.in .marker { color: var(--label); }
+.in .marker b { background: var(--accent); box-shadow: inset 0 0 0 2px var(--accent); }
+.steps li:nth-child(1) .marker, .steps li:nth-child(1) .marker b { transition-delay: 100ms; }
+.steps li:nth-child(2) .marker, .steps li:nth-child(2) .marker b { transition-delay: 650ms; }
+.steps li:nth-child(3) .marker, .steps li:nth-child(3) .marker b { transition-delay: 1200ms; }
+.steps h3 { margin: 4px 0 0; font-size: 19px; font-weight: 600; letter-spacing: -0.02em; }
+.steps p { margin: 0; color: var(--muted); font-size: 15.5px; }
+
+/* Tables: rules only between rows */
+.table-wrap { overflow-x: auto; background: color-mix(in srgb, var(--page-bg) 86%, transparent); border-radius: var(--r); }
+table { width: 100%; border-collapse: collapse; font-size: 15px; }
+th, td { text-align: left; padding: 15px 18px 15px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+th:last-child, td:last-child { padding-right: 0; }
+thead th { font-size: 13px; font-weight: 500; color: var(--muted); white-space: nowrap; padding-top: 0; }
+tbody tr:last-child td { border-bottom: 0; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.quote { min-width: 820px; }
+.quote td:first-child { font-weight: 500; }
+.quote td .sub { display: block; font-weight: 400; font-size: 13.5px; color: var(--muted); }
+.quote tr.today td { color: var(--muted); }
+.quote tr.today td:first-child { color: var(--ink-2); }
+.tag { display: inline-block; margin-left: 8px; font-size: 12px; font-weight: 500; color: var(--accent); background: var(--accent-wash); padding: 1px 7px; border-radius: 4px; vertical-align: 1px; }
+.down { color: var(--good); }
+.landed { display: inline-flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.lbar { display: block; width: 120px; height: 5px; border-radius: 3px; background: color-mix(in srgb, var(--ink) 7%, transparent); overflow: hidden; }
+.lbar i { display: block; height: 100%; width: 0; border-radius: 3px; background: #9CA3AF; transition: width 1100ms var(--ease); }
+.lbar.best i { background: var(--accent); }
+.in .lbar i { width: var(--w); }
+.quote tbody tr:nth-child(2) .lbar i { transition-delay: 150ms; }
+.quote tbody tr:nth-child(3) .lbar i { transition-delay: 300ms; }
+.catalog { min-width: 640px; }
+.catalog td:first-child { font-weight: 500; width: 28%; }
+.catalog td:nth-child(2) { color: var(--ink-2); }
+.catalog td:nth-child(3) { color: var(--muted); }
+
+/* Qualification ladder */
+.ladder { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 32px; }
+@media (max-width: 900px) { .ladder { grid-template-columns: minmax(0, 1fr); gap: 24px; } }
+.rung { display: flex; flex-direction: column; gap: 10px; }
+.meter { display: flex; gap: 3px; max-width: 170px; }
+.meter i { flex: 1; height: 5px; border-radius: 2px; background: var(--meter-off); transition: background-color 380ms ease; }
+.in .meter i.on { background: var(--meter-on); }
+.rung h3 { margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.015em; }
+.rung p { margin: 0; color: var(--muted); font-size: 14.5px; }
+
+/* Future: two rankings */
+.rank { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; max-width: 1000px; }
+@media (max-width: 760px) { .rank { grid-template-columns: minmax(0, 1fr); } }
+.rcol { display: flex; flex-direction: column; gap: 6px; }
+.rh { font-size: 14px; font-weight: 500; color: var(--muted); margin: 0 0 8px; }
+.ri { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 13px 16px; border-radius: var(--r); background: var(--card); font-size: 15px; }
+.ri span { font-weight: 500; } .ri em { font-style: normal; font-size: 13.5px; color: var(--muted); text-align: right; }
+.ri .ad { color: #F0A58F; }
+.ri.top { box-shadow: inset 0 0 0 1px var(--label); } .ri.top em { color: var(--label); }
+.ri.dim { background: transparent; color: var(--muted); }
+
+/* Suppliers */
+.supply { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 28px; align-items: center; padding: 32px; border-radius: 12px; background: var(--card); box-shadow: inset 0 0 0 1px var(--line); }
+.supply h3 { margin: 0 0 8px; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
+.supply p { margin: 0; color: var(--muted); max-width: 54ch; }
+.mail { font-family: var(--mono); font-size: 15px; padding: 12px 16px; border-radius: var(--r); background: color-mix(in srgb, var(--ink) 8%, transparent); user-select: all; white-space: nowrap; }
+@media (max-width: 760px) { .supply { grid-template-columns: minmax(0, 1fr); } }
+
+/* Closer */
+.closer { padding-block: 128px 140px; }
+.closer .wrap { display: flex; flex-direction: column; align-items: flex-start; gap: 24px; }
+.closer h2 { font-size: clamp(32px, 4vw, 52px); max-width: 14em; }
+.closer p { margin: -8px 0 0; color: var(--muted); font-size: 17px; }
+
+footer { padding-block: 32px; padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px)); font-size: 14px; color: var(--muted); }
+footer .wrap { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+footer .brand { font-size: 15px; }
+footer .brand svg { width: 18px; height: 20px; }
+footer a { text-decoration: none; } footer a:hover { color: var(--ink); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0ms !important; transition-delay: 0ms !important; animation: none !important; }
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="fs-mark" viewBox="214 199 472 508">
+    <g fill="none" stroke="#D3B468" stroke-width="45"><circle cx="448" cy="305" r="78"/><circle cx="320" cy="601" r="78"/><circle cx="578" cy="601" r="78"/></g>
+    <g fill="#D3B468"><rect x="419" y="378" width="58" height="60"/><rect x="291" y="425" width="316" height="58" rx="26"/><rect x="291" y="445" width="58" height="80"/><rect x="549" y="445" width="58" height="80"/></g>
+  </symbol>
+  <symbol id="bot" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="7" width="14" height="11" rx="3"/><path d="M12 7V4M8 21h8"/></g><circle cx="9.5" cy="12.5" r="1.2" fill="currentColor"/><circle cx="14.5" cy="12.5" r="1.2" fill="currentColor"/></symbol>
+</svg>
+
+<div class="art" aria-hidden="true">
+  <div class="ascii"><pre class="body" id="ascii-body"></pre><pre class="out" id="ascii-out"></pre></div>
+</div>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="FieldSupply home"><svg aria-hidden="true"><use href="#fs-mark"/></svg>FieldSupply</a>
+    <nav class="links" aria-label="Main">
+      <a href="#how">How it works</a>
+      <a href="#checks">Factory checks</a>
+      <a href="#parts">What we source</a>
+      <a href="#suppliers">For suppliers</a>
+      <a class="btn" href="#join">Join the waitlist</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <!-- HERO -->
+  <section class="hero" data-bg="#FFFFFF">
+    <div class="wrap">
+      <div class="hero-copy">
+        <p class="kicker"><i aria-hidden="true"></i>Now onboarding robotics and drone teams to the waitlist</p>
+        <h1>Bot to Bot Commerce <span class="soft">for hardware.</span></h1>
+        <p class="lede">Your agent talks to suppliers' agents. Upload your parts list, and FieldSupply agrees specs, price and lead time with qualified factories in China and Taiwan, in both languages. You approve a part that's been tested to your spec.</p>
+
+        <form class="join" id="waitlist" name="waitlist" method="POST" novalidate>
+          <p class="sr" aria-hidden="true"><label>Leave this empty <input name="company_website" tabindex="-1" autocomplete="off"></label></p>
+          <div class="row" id="join">
+            <label class="sr" for="wl-email">Work email</label>
+            <input class="field" id="wl-email" name="email" type="email" required autocomplete="email" placeholder="Work email" aria-describedby="wl-hint">
+            <button class="btn lg" type="submit" id="wl-submit">Join the waitlist</button>
+          </div>
+          <div class="row2">
+            <label class="sr" for="wl-company">Company</label>
+            <input class="field" id="wl-company" name="company" type="text" autocomplete="organization" placeholder="Company (optional)">
+            <label class="sr" for="wl-need">What do you need sourced?</label>
+            <select class="field" id="wl-need" name="need">
+              <option value="">What do you need sourced?</option>
+              <option>Motors and gearboxes</option>
+              <option>Joint actuators</option>
+              <option>Drives and controllers</option>
+              <option>Cable harnesses</option>
+              <option>Machined parts or enclosures</option>
+              <option>Drone motors and parts</option>
+              <option>Something else</option>
+            </select>
+          </div>
+          <p class="fine" id="wl-hint">For hardware teams buying 10 to 1,000 units. One email when we open to new teams.</p>
+        </form>
+        <p class="result" id="wl-result" role="status" aria-live="polite" hidden></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROBLEM -->
+  <section class="band" data-bg="#F2F4F7">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">The problem</p>
+        <h2>Buying hardware today: people typing at each other.</h2>
+        <p>Dozens of tabs on Alibaba and 1688, chats with factories on WeChat, and everything run through a translator.</p>
+      </div>
+      <div class="problem-grid reveal">
+        <div class="pile-box" id="pile-box">
+          <div class="pile" id="pile" role="img" aria-label="A pile of windows: a browser crammed with Alibaba and 1688 tabs, WeChat with unread factory chats, and a translation tab">
+            <div class="win wx" aria-hidden="true">
+              <div class="wbar"><span class="dots"><i></i><i></i><i></i></span>WeChat</div>
+              <div class="chat"><span class="av">深</span><span class="cn"><b>Shenzhen motor factory</b><small>收到。8mm 光轴可以吗？</small></span><span class="ub">3</span></div>
+              <div class="chat"><span class="av">东</span><span class="cn"><b>Dongguan gearbox supplier</b><small>[Voice message 0:48]</small></span><span class="ub">7</span></div>
+              <div class="chat"><span class="av">宁</span><span class="cn"><b>Ningbo trading co.</b><small>报价单已发，请查收</small></span><span class="ub">12</span></div>
+              <div class="chat"><span class="av">台</span><span class="cn"><b>Taichung actuator sales</b><small>MOQ is 500 pcs</small></span><span class="ub">2</span></div>
+            </div>
+            <div class="win wt2" aria-hidden="true">
+              <div class="wbar"><span class="dots"><i></i><i></i><i></i></span>Translate</div>
+              <div class="tr"><span>键槽轴 8mm，48V 无刷电机</span><span class="arrow">↓</span><span>keyway shaft 8mm, 48V brushless motor <em>(?)</em></span></div>
+            </div>
+            <div class="win wb" aria-hidden="true">
+              <div class="tabstrip" id="tabstrip"></div>
+              <div class="url">alibaba.com/trade/search?SearchText=48v+bldc+motor+8mm+keyed+shaft</div>
+              <div class="results">
+                <div class="res"><span class="ph"></span><b>US$38–62</b><small>MOQ 50 · shaft ?</small></div>
+                <div class="res"><span class="ph"></span><b>US$24–71</b><small>MOQ 100 · shaft ?</small></div>
+                <div class="res"><span class="ph"></span><b>US$45</b><small>MOQ 20 · shaft ?</small></div>
+                <div class="res"><span class="ph"></span><b>US$19–88</b><small>MOQ 500 · shaft ?</small></div>
+              </div>
+            </div>
+            <div class="tabcount"><b id="tabn">44</b> tabs open</div>
+          </div>
+        </div>
+        <div>
+          <div class="thread">
+            <div class="msg me"><span class="wk">Engineer, California · email</span>Need 100 × 48V motors, 8 mm keyed shaft.</div>
+            <div class="msg them"><span class="wk">Factory, Shenzhen · WeChat</span>收到。8mm 光轴可以吗？<em>"Is a smooth shaft OK?"</em></div>
+            <div class="msg bad"><span class="wk">Seven weeks later</span>Sample arrives. Wrong shaft.</div>
+          </div>
+          <p class="caption">Example thread</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW -->
+  <section class="band" id="how" data-bg="#E9EFF8">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">How it works</p>
+        <h2>What if your agent talked to theirs?</h2>
+        <p>We're onboarding 200+ hardware suppliers, each with their own agent. Specs, price and lead time get agreed in minutes, in both languages. You keep your current supplier and decide.</p>
+      </div>
+      <div class="reveal">
+        <div class="duo">
+          <div class="node"><svg aria-hidden="true"><use href="#bot"/></svg><b>Your agent</b><p>Knows what you need</p></div>
+          <div class="wire" aria-hidden="true"><i></i><i></i><i></i></div>
+          <div class="node"><svg aria-hidden="true"><use href="#bot"/></svg><b>Supplier's agent</b><p>Knows what they make</p></div>
+        </div>
+        <div class="steps-wrap">
+          <div class="track" aria-hidden="true"><i></i></div>
+          <ol class="steps">
+            <li><span class="marker"><b></b>Step 1</span><h3>Upload your parts list</h3><p>Your BOM with drawings or part numbers, plus what you pay now. Nothing changes with your current suppliers.</p></li>
+            <li><span class="marker"><b></b>Step 2</span><h3>Agents negotiate</h3><p>Your agent works with suppliers' agents on spec, price, MOQ and lead time, with freight, duty and inspection priced in.</p></li>
+            <li><span class="marker"><b></b>Step 3</span><h3>Approve a tested part</h3><p>A sample is tested to your spec, on video. Once it passes, we handle production runs and reorders.</p></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUOTE -->
+  <section class="band" data-bg="#FFFFFF">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">What you get back</p>
+        <h2>A quote you can act on.</h2>
+        <p>Every option is priced landed, with freight, duty and inspection included, and set against what you pay today.</p>
+      </div>
+      <div class="reveal">
+        <div class="table-wrap">
+          <table class="quote">
+            <thead><tr><th>Supplier</th><th>Country</th><th class="num">Unit price</th><th class="num">Freight and duty</th><th class="num">Landed per unit</th><th class="num">MOQ</th><th class="num">Lead time</th><th class="num">Against today</th></tr></thead>
+            <tbody>
+              <tr class="today"><td>Current supplier<span class="sub">US reseller, what you pay now</span></td><td>United States</td><td class="num">$260.00</td><td class="num">Included</td><td class="num"><span class="landed"><span data-count="260" data-prefix="$" data-dec="2">$260.00</span><span class="lbar"><i style="--w:100%"></i></span></span></td><td class="num">1</td><td class="num">In stock</td><td class="num">Benchmark</td></tr>
+              <tr><td>Option A<span class="tag">Lowest landed</span><span class="sub">Motor factory, sample tested</span></td><td>China</td><td class="num">$128.00</td><td class="num">$24.00</td><td class="num"><span class="landed"><span data-count="152" data-prefix="$" data-dec="2">$152.00</span><span class="lbar best"><i style="--w:58.5%"></i></span></span></td><td class="num">50</td><td class="num">30 days</td><td class="num down"><span data-count="42" data-suffix="% lower">42% lower</span></td></tr>
+              <tr><td>Option B<span class="sub">Non-Chinese supply for drone builds</span></td><td>Taiwan</td><td class="num">$171.00</td><td class="num">$16.00</td><td class="num"><span class="landed"><span data-count="187" data-prefix="$" data-dec="2">$187.00</span><span class="lbar"><i style="--w:71.9%"></i></span></span></td><td class="num">20</td><td class="num">21 days</td><td class="num down"><span data-count="28" data-suffix="% lower">28% lower</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="caption">Illustrative example for 100 units of a 48V BLDC motor with a 10:1 planetary gearbox.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CHECKS -->
+  <section class="band" id="checks" data-bg="#F2F4F7">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">Factory checks</p>
+        <h2>Agents can bluff. <span class="soft">Test benches can't.</span></h2>
+        <p>Every part is tested to your spec, on video, and checked against US and Chinese rules before you pay. You see exactly how far each factory has been checked.</p>
+      </div>
+      <div class="ladder reveal">
+        <div class="rung"><div class="meter"><i class="on"></i><i></i><i></i><i></i><i></i></div><h3>Business verified</h3><p>Registration and legal identity confirmed.</p></div>
+        <div class="rung"><div class="meter"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div><h3>Capabilities reviewed</h3><p>Processes, equipment and capacity examined.</p></div>
+        <div class="rung"><div class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div><h3>Documents reviewed</h3><p>Datasheets and quality records checked.</p></div>
+        <div class="rung"><div class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div><h3>Sample tested</h3><p>Measured against your requirements, on video.</p></div>
+        <div class="rung"><div class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div><h3>Production qualified</h3><p>Repeat runs delivered to the same standard.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PARTS -->
+  <section class="band" id="parts" data-bg="#FFFFFF">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">What we source</p>
+        <h2>Parts too custom for a catalogue.</h2>
+        <p>The electromechanical parts robots and drones are built from, in batches of 10 to 1,000: too small for distributors and too specific for a marketplace listing.</p>
+      </div>
+      <div class="table-wrap reveal">
+        <table class="catalog">
+          <thead><tr><th>Category</th><th>Typical parts</th><th>How we source it</th></tr></thead>
+          <tbody>
+            <tr><td>Motors and gearboxes</td><td>BLDC and servo motors, planetary and harmonic gearboxes</td><td>Matched and tested as one set</td></tr>
+            <tr><td>Joint actuators</td><td>Motor, gearbox, encoder and driver in one housing</td><td>For arms, legs and grippers</td></tr>
+            <tr><td>Drives and controllers</td><td>Motor drivers and motion controllers</td><td>To your voltage, protocol and connector</td></tr>
+            <tr><td>Cable harnesses</td><td>Power and signal harnesses</td><td>Built to your drawing and tested before shipping</td></tr>
+            <tr><td>Machined parts and enclosures</td><td>Brackets, housings and sheet metal</td><td>Short runs from your drawings</td></tr>
+            <tr><td>Drone motors and parts</td><td>Motors, ESCs and frames</td><td>Taiwan supply for non-Chinese builds</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- FUTURE + SUPPLIERS -->
+  <section class="band" id="suppliers" data-bg="#0E1A30" data-dark>
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">Where this goes</p>
+        <h2>Your agent finds the best product. <span class="soft">Not the one that paid to be on top.</span></h2>
+      </div>
+      <div class="rank reveal">
+        <div class="rcol">
+          <p class="rh">Today: ranked by ad spend</p>
+          <div class="ri"><span>Motor A</span><em class="ad">Sponsored</em></div>
+          <div class="ri"><span>Motor B</span><em class="ad">Sponsored</em></div>
+          <div class="ri"><span>Motor C</span><em class="ad">Sponsored</em></div>
+          <div class="ri dim"><span>Motor D</span><em>Best spec, best price, page 4</em></div>
+        </div>
+        <div class="rcol">
+          <p class="rh">With agents: ranked by what's true</p>
+          <div class="ri top"><span>Motor D</span><em>Tested to spec · best landed price</em></div>
+          <div class="ri"><span>Motor B</span><em>Tested · 18% more</em></div>
+          <div class="ri"><span>Motor A</span><em>Late on 2 of 5 orders</em></div>
+          <div class="ri dim"><span>Motor C</span><em>Failed sample test</em></div>
+        </div>
+      </div>
+      <div class="supply reveal" style="margin-top:72px">
+        <div>
+          <h3>Make hardware? Get a free agent.</h3>
+          <p>We're onboarding 200+ hardware suppliers. Your agent answers buyers around the clock, in Chinese, and brings you engineering teams from the US.</p>
+        </div>
+        <span class="mail">hello@fieldsupply.co</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- CLOSER -->
+  <section class="closer" data-bg="#0E1A30" data-dark>
+    <div class="wrap">
+      <h2>Building robots or drones? Get on the list.</h2>
+      <p>We're opening to a small group of hardware teams first.</p>
+      <a class="btn lg" href="#join" id="closer-cta">Join the waitlist</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <a class="brand" href="#top"><svg aria-hidden="true"><use href="#fs-mark"/></svg>FieldSupply</a>
+    <span>© 2026 FieldSupply · <a href="mailto:hello@fieldsupply.co">hello@fieldsupply.co</a></span>
+  </div>
+</footer>
+
+<script>
+var REDUCE = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- Background ASCII actuator, driven by scroll ---------- */
+(function () {
+  var bodyEl = document.getElementById('ascii-body');
+  var outEl = document.getElementById('ascii-out');
+  if (!bodyEl) return;
+  var W = 78, H = 40;
+  var RAMP = ' .,:;-=+*%#@';
+  var K2 = 5.2, K1y = H * 0.40 * K2 / 1.18, K1x = K1y * 1.66;
+  var LX = -0.35, LY = 0.62, LZ = -0.70;
+  var ln = Math.hypot(LX, LY, LZ); LX /= ln; LY /= ln; LZ /= ln;
+  var TAU = Math.PI * 2;
+  var N = W * H, zb = new Float32Array(N), buf = new Array(N), own = new Uint8Array(N);
+
+  var P = [];
+  function add(x, y, z, nx, ny, nz, s) { P.push(x, y, z, nx, ny, nz, s); }
+  var R = 1.0, ZB = -0.62, ZF = 0.30, RF = 0.56, ZO = 0.58;
+  for (var t = 0; t < TAU; t += 0.022) {
+    var c = Math.cos(t), s = Math.sin(t);
+    for (var z = ZB; z <= ZF; z += 0.022) {
+      var fin = (z > -0.5 && z < 0.18) && (Math.floor((z + 0.5) / 0.085) % 2 === 0);
+      var r = fin ? R * 1.045 : R;
+      add(r * c, r * s, z, c, s, 0, 0);
+    }
+  }
+  for (var rr = 0; rr <= R; rr += 0.024) for (var t2 = 0; t2 < TAU; t2 += 0.024 / Math.max(rr, 0.12)) add(rr * Math.cos(t2), rr * Math.sin(t2), ZB, 0, 0, -1, 0);
+  var holes8 = []; for (var h = 0; h < 8; h++) holes8.push([0.79 * Math.cos(h * TAU / 8 + 0.2), 0.79 * Math.sin(h * TAU / 8 + 0.2)]);
+  for (var r3 = RF; r3 <= R; r3 += 0.02) for (var t3 = 0; t3 < TAU; t3 += 0.02 / r3) {
+    var x3 = r3 * Math.cos(t3), y3 = r3 * Math.sin(t3), hole = false;
+    for (var k = 0; k < 8; k++) { var dx = x3 - holes8[k][0], dy = y3 - holes8[k][1]; if (dx * dx + dy * dy < 0.0045) { hole = true; break; } }
+    if (!hole) add(x3, y3, ZF, 0, 0, 1, 0);
+  }
+  for (var t4 = 0; t4 < TAU; t4 += 0.03) for (var z4 = ZF; z4 <= ZO; z4 += 0.02) add(RF * Math.cos(t4), RF * Math.sin(t4), z4, Math.cos(t4), Math.sin(t4), 0, 1);
+  var holes6 = []; for (var h2 = 0; h2 < 6; h2++) holes6.push([0.38 * Math.cos(h2 * TAU / 6), 0.38 * Math.sin(h2 * TAU / 6)]);
+  for (var r5 = 0.13; r5 <= RF; r5 += 0.016) for (var t5 = 0; t5 < TAU; t5 += 0.016 / r5) {
+    var x5 = r5 * Math.cos(t5), y5 = r5 * Math.sin(t5), h5 = false;
+    for (var k2 = 0; k2 < 6; k2++) { var ex = x5 - holes6[k2][0], ey = y5 - holes6[k2][1]; if (ex * ex + ey * ey < 0.0032) { h5 = true; break; } }
+    if (Math.abs(y5) < 0.035 && x5 > 0.44) h5 = true;
+    if (!h5) add(x5, y5, ZO, 0, 0, 1, 1);
+  }
+  var count = P.length / 7;
+
+  function render(A, B, phi) {
+    zb.fill(0); own.fill(0);
+    for (var i = 0; i < N; i++) buf[i] = ' ';
+    var cA = Math.cos(A), sA = Math.sin(A), cB = Math.cos(B), sB = Math.sin(B), cP = Math.cos(phi), sP = Math.sin(phi);
+    for (var j = 0; j < count; j++) {
+      var o = j * 7, x = P[o], y = P[o + 1], z = P[o + 2], nx = P[o + 3], ny = P[o + 4], nz = P[o + 5], sp = P[o + 6];
+      if (sp) { var xr = x * cP - y * sP, yr = x * sP + y * cP; x = xr; y = yr; var nxr = nx * cP - ny * sP, nyr = nx * sP + ny * cP; nx = nxr; ny = nyr; }
+      var y1 = y * cA - z * sA, z1 = y * sA + z * cA, ny1 = ny * cA - nz * sA, nz1 = ny * sA + nz * cA;
+      var x2 = x * cB + z1 * sB, z2 = -x * sB + z1 * cB, nx2 = nx * cB + nz1 * sB, nz2 = -nx * sB + nz1 * cB;
+      var ooz = 1 / (z2 + K2);
+      var xp = (W / 2 + K1x * ooz * x2) | 0, yp = (H / 2 - K1y * ooz * y1) | 0;
+      if (xp < 0 || xp >= W || yp < 0 || yp >= H) continue;
+      var idx = xp + W * yp;
+      if (ooz <= zb[idx]) continue;
+      zb[idx] = ooz;
+      var L = nx2 * LX + ny1 * LY + nz2 * LZ;
+      var lum = L > 0 ? L : 0;
+      var gi = 2 + Math.round((1 - lum) * (RAMP.length - 3));
+      if (sp) gi = Math.min(RAMP.length - 1, gi + 3);
+      buf[idx] = RAMP.charAt(gi);
+      own[idx] = sp;
+    }
+    var a = '', b = '';
+    for (var row = 0; row < H; row++) {
+      for (var col = 0; col < W; col++) { var q = col + W * row, ch = buf[q]; if (own[q]) { a += ' '; b += ch; } else { a += ch; b += ' '; } }
+      a += '\n'; b += '\n';
+    }
+    bodyEl.textContent = a; outEl.textContent = b;
+  }
+  function draw(px) {
+    var B = Math.PI - 0.85 + px * 0.0022;
+    var A = -0.55 + Math.sin(px * 0.0016) * 0.18;
+    var phi = px * 0.009;
+    render(A, B, phi);
+  }
+  if (REDUCE) { draw(0); return; }
+  var target = window.scrollY, current = target, ticking = false;
+  function step() {
+    var d = target - current;
+    current = Math.abs(d) < 0.5 ? target : current + d * 0.14;
+    draw(current);
+    if (current !== target) requestAnimationFrame(step); else ticking = false;
+  }
+  window.addEventListener('scroll', function () {
+    target = window.scrollY;
+    if (!ticking) { ticking = true; requestAnimationFrame(step); }
+  }, { passive: true });
+  draw(current);
+})();
+
+/* ---------- Page colour follows the section in the middle of the screen ---------- */
+(function () {
+  var sections = Array.prototype.slice.call(document.querySelectorAll('[data-bg]'));
+  var meta = document.querySelector('meta[name="theme-color"]');
+  function apply(sec) {
+    var bg = sec.getAttribute('data-bg');
+    document.body.style.setProperty('--page-bg', bg);
+    document.documentElement.style.background = bg;
+    document.body.classList.toggle('is-dark', sec.hasAttribute('data-dark'));
+    document.body.classList.toggle('past-hero', !sec.classList.contains('hero'));
+    if (meta) meta.setAttribute('content', bg);
+  }
+  if (!('IntersectionObserver' in window)) return;
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) { if (e.isIntersecting) apply(e.target); });
+  }, { rootMargin: '-48% 0px -48% 0px' });
+  sections.forEach(function (s) { io.observe(s); });
+})();
+
+/* ---------- Content animations: run once when each block comes into view ---------- */
+(function () {
+  var blocks = Array.prototype.slice.call(document.querySelectorAll('.reveal'));
+  Array.prototype.forEach.call(document.querySelectorAll('.rung'), function (rung, ri) {
+    Array.prototype.forEach.call(rung.querySelectorAll('.meter i.on'), function (seg, si) { seg.style.transitionDelay = (ri * 160 + si * 110) + 'ms'; });
+  });
+  function fmt(v, el) {
+    var dec = +(el.getAttribute('data-dec') || 0);
+    var s = v.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+    return (el.getAttribute('data-prefix') || '') + s + (el.getAttribute('data-suffix') || '');
+  }
+  function countUp(el) {
+    var to = +el.getAttribute('data-count'), t0 = null, dur = 1100;
+    function tick(ts) {
+      if (t0 === null) t0 = ts;
+      var p = Math.min(1, (ts - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+      el.textContent = fmt(to * e, el);
+      if (p < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+  if (REDUCE || !('IntersectionObserver' in window)) { blocks.forEach(function (b) { b.classList.add('in'); }); return; }
+  blocks.forEach(function (b) { Array.prototype.forEach.call(b.querySelectorAll('[data-count]'), function (el) { el.textContent = fmt(0, el); }); });
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      e.target.classList.add('in');
+      Array.prototype.forEach.call(e.target.querySelectorAll('[data-count]'), countUp);
+      io.unobserve(e.target);
+    });
+  }, { threshold: 0.25 });
+  blocks.forEach(function (b) { io.observe(b); });
+})();
+
+/* ---------- Tab pile: scale to its column, fill the tab strip when it comes into view ---------- */
+(function () {
+  var box = document.getElementById('pile-box'), pile = document.getElementById('pile');
+  var strip = document.getElementById('tabstrip'), num = document.getElementById('tabn');
+  function fit() { var s = Math.min(1, box.clientWidth / 640); pile.style.transform = 'scale(' + s + ')'; box.style.height = (500 * s + 48) + 'px'; }
+  window.addEventListener('resize', fit); fit();
+  var POOL = [
+    ['Alibaba · 48V BLDC motor', '#F97316'], ['1688 · 无刷电机 48V', '#F97316'], ['WeChat', '#07C160'], ['Translate', '#3B82F6'],
+    ['Spec_sheet_v3.pdf', '#9CA3AF'], ['Alibaba · keyed shaft 8mm', '#F97316'], ['Made-in-China · motor', '#EAB308'], ['Quote_Rev2.xlsx', '#16A34A'],
+    ['1688 · 减速箱 10:1', '#F97316'], ['Freight quote LAX', '#9CA3AF'], ['Alibaba · gearbox planetary', '#F97316'], ['Global Sources · actuator', '#EAB308'],
+    ['WeChat Web', '#07C160'], ['Translate', '#3B82F6'], ['Alibaba · 48V 500W motor', '#F97316'], ['Supplier audit?', '#9CA3AF']
+  ];
+  var MAX = 44, n = 0;
+  function make(k, anim) {
+    var p = POOL[k % POOL.length], t = document.createElement('span');
+    t.className = 'tb' + (anim ? ' new' : ''); t.style.setProperty('--fc', p[1]);
+    t.innerHTML = '<i></i><span></span>'; t.lastChild.textContent = p[0]; return t;
+  }
+  function mark() { var all = strip.children; for (var k = 0; k < all.length; k++) all[k].classList.toggle('cur', k === all.length - 1); num.textContent = n; }
+  function fill(c) { strip.textContent = ''; for (var k = 0; k < c; k++) strip.appendChild(make(k)); n = c; mark(); }
+  if (REDUCE || !('IntersectionObserver' in window)) { fill(MAX); return; }
+  fill(4);
+  var io = new IntersectionObserver(function (es) {
+    if (!es[0].isIntersecting) return; io.disconnect();
+    setTimeout(function () {
+      var timer = setInterval(function () { if (n >= MAX) return clearInterval(timer); strip.appendChild(make(n, true)); n++; mark(); }, 70);
+    }, 700);
+  }, { threshold: 0.4 });
+  io.observe(box);
+})();
+
+/* ---------- Waitlist → Google Sheet (same endpoint and fields as before) ---------- */
+var WAITLIST_URL = 'https://script.google.com/macros/s/AKfycbwS1wJiuc66w1n1XfxZfsHmCFficoxNWqc9bwlt1dM4QC6HIQHEusc3W1Gc2Fg4mPkMaA/exec';
+
+(function () {
+  var form = document.getElementById('waitlist');
+  var result = document.getElementById('wl-result');
+  var btn = document.getElementById('wl-submit');
+  var email = document.getElementById('wl-email');
+  email.addEventListener('input', function () { email.removeAttribute('aria-invalid'); if (!result.classList.contains('ok')) result.hidden = true; });
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!email.value || !email.checkValidity()) {
+      email.setAttribute('aria-invalid', 'true'); email.focus();
+      result.className = 'result err'; result.textContent = 'Enter a work email, like name@company.com.'; result.hidden = false;
+      return;
+    }
+    var data = new FormData(form);
+    if (data.get('company_website')) return; // bot filled the hidden field
+    var body = new URLSearchParams({
+      email: email.value.trim(),
+      company: (data.get('company') || '').toString().trim(),
+      need: (data.get('need') || '').toString(),
+      page: location.href
+    });
+    btn.disabled = true; btn.textContent = 'Joining…';
+    function done() {
+      form.hidden = true;
+      result.className = 'result ok';
+      result.textContent = 'You’re on the list. We’ll email ' + email.value.trim() + ' when we open to new teams.';
+      result.hidden = false;
+    }
+    // A plain form-encoded POST needs no preflight. If the browser can't read Google's reply,
+    // send once more without reading it; the sheet skips duplicate emails, so nothing is added twice.
+    fetch(WAITLIST_URL, { method: 'POST', body: body })
+      .then(function (res) { return res.json(); })
+      .then(function (d) {
+        if (d && d.ok) return done();
+        if (d && d.error === 'invalid_email') { btn.disabled = false; btn.textContent = 'Join the waitlist'; email.setAttribute('aria-invalid', 'true'); result.className = 'result err'; result.textContent = 'Enter a work email, like name@company.com.'; result.hidden = false; return; }
+        throw new Error('server');
+      })
+      .catch(function (err) {
+        if (err && err.message === 'server') throw err;
+        return fetch(WAITLIST_URL, { method: 'POST', mode: 'no-cors', body: body }).then(done);
+      })
+      .catch(function () {
+        btn.disabled = false; btn.textContent = 'Join the waitlist';
+        result.className = 'result err';
+        result.textContent = 'That didn’t go through. Try again, or email hello@fieldsupply.co and we’ll add you.';
+        result.hidden = false;
+      });
+  });
+  document.getElementById('closer-cta').addEventListener('click', function () {
+    setTimeout(function () { email.focus({ preventScroll: true }); }, 450);
+  });
+})();
+</script>
+</body>
+</html>
